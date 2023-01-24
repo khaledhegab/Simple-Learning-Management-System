@@ -1,4 +1,9 @@
 id,Course Name,Instructor,Course duration,Course time,Location
-1,Algorithms,Scott, Austin C.,8 weeks,2H,Hall1
-2,Number Theory.,Rojas, Yoshio N.,10 weeks,3H,Hall4
-3,Computer Engineering,Farley, Jamal C.,12 weeks,1.5H,Hall2
+1,Algorithms,Scott Austin C.,8 weeks,2H,Hall1
+2,Number Theory.,Rojas Yoshio N.,10 weeks,3H,Hall4
+3,Computer Engineering,Farley Jamal C.,12 weeks,1.5H,Hall2
+4,Computer Engineering4,Farley Jamal C.,12 weeks,1.5H,Hall2
+5,Computer Engineering5,Farley Jamal C.,12 weeks,1.5H,Hall2
+6,Computer Engineering6,Farley Jamal C.,12 weeks,1.5H,Hall2
+7,Computer Engineering7,Farley Jamal C.,12 weeks,1.5H,Hall2
+8,Computer Engineering8,Farley Jamal C.,12 weeks,1.5H,Hall2

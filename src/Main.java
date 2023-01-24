@@ -1,211 +1,301 @@
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
+import java.util.Scanner;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import static Course.Course.*;
+import static Student.Student.*;
 
 public class Main {
+    static Scanner in = new Scanner(System.in);
     public static void main(String[] args) {
 
-        String studentsData = getStudentsData();
-        saveToCSVFile("student_data.csv", convertStudentsDataToRows(studentsData));
-        saveToCSVFile("course_data.csv", convertCourseDataToRows());
+        String studentsData = readFromText("student_data.txt");
+        saveToFile("student_data.csv", convertStudentsDataToRows(studentsData));
+        saveToFile("course_data.csv", convertCourseDataToRows());
+
+        System.out.println("Welcome to LMS\n" +
+                "created by {Khaled Hegab_1/24/2023}\n" +
+                "====================================================================================");
+
+        while (true){
+            homePage();
+        }
+
+    }
+
+    private static void print(String input){
+        System.out.print(input);
+    }
+    private static void homePage(){
+     System.out.println("Home page\n" +
+             "====================================================================================");
         printStudentData();
-
-    }
-
-    public static String getStudentsData(){
-        String path = "student_data.txt";
-        String data = "";
+        System.out.println("------------------------------------------------------------------------------------");
+        System.out.print("Please select the required student: ");
         try {
-            FileInputStream studentDataFIS= new FileInputStream(path);
-            int size = studentDataFIS.available();
-            byte[] b = new byte[size];
-            studentDataFIS.read(b);
-            data = new String(b);
-            studentDataFIS.close();
+            String input = in.next();
+            int studentID= Integer.valueOf(input);
 
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return data;
-    }
+            String [] studentData = getStudentData(studentID);
 
-    public static String convertStudentsDataToRows(String data){
-        String valueSeparator= "#";
-        String recordSeparator= "\\$";
-        String allRows="";
-        System.out.println(recordSeparator);
-
-        List<String> rows = Arrays.asList(data.split(recordSeparator));
-        rows.set(0,"id," + rows.get(0));
-        int id=0;
-        for(String row : rows){
-            List<String> values= new ArrayList<>();
-
-            if(id>0) {
-                values.add(0, String.valueOf(id));
+            if(studentData[0] == null){
+                System.out.println("Student ID does not exist, Please choose from the list");
+                return;
             }
-            values.addAll(Arrays.asList(row.split(valueSeparator)));
-            for(String value : values){
-                allRows += value + ",";
+            studentDetailedPage(studentData);
+        }
+        catch (Exception ex){
+            print(ex.toString());
+            System.out.println("Invalid strudent ID, Please enter numbers only");
+        }
+    }
+
+
+    private static void studentDetailedPage(String[] studentData){
+
+        print("====================================================================================\n" +
+                "Student Details page\n" +
+                "====================================================================================\n");
+        int studentID = Integer.valueOf(studentData[0]);
+        String name  = studentData[1];
+        String grade = studentData[2];
+        String email = studentData[3];
+
+        print("Name:" + name + " \tGrade: " + grade + " \tEmail: " + email + "\n");
+
+        int [] enrolledStudentCourses= getStudentEnrolledCourses(studentID);
+        if(enrolledStudentCourses[0] == 0){
+            print("This student hasn't enrolled in any courses\n");
+        }
+        else{
+
+            print("Enrolled courses.\n");
+            for(int i=0;i<enrolledStudentCourses.length;i++){
+                if(enrolledStudentCourses[i]==0) break;
+                String[] courseData = getCourseData(enrolledStudentCourses[i]);
+                print((i+1) + "-\t" + courseData[0] + "\t" + courseData[1] + "\t" + courseData[2] + "\t" + courseData[3]+ "\t" + courseData[4]+ "\t" + courseData[5] + "\n");
             }
-            allRows = allRows.substring(0,allRows.length()-1);
-            allRows +="\n";
-            id++;
         }
+        boolean cont = true;
 
-        return allRows;
-    }
+        while (cont) {
 
-    public static void saveToCSVFile(String fileName,String data){
-        try {
-            FileOutputStream fos = new FileOutputStream(fileName);
+            print("------------------------------------------------------------------------------------\n" +
+                    "Please choose from the following:\n" +
+                    "a - Enroll in a course\n" +
+                    "d - Unenrollfrom an existing course\n" +
+                    "r - Replacing an existing course\n" +
+                    "b - Back to the main page\n" +
+                    "please select the required action:");
 
-            fos.write(data.getBytes());
-            fos.close();
-
-
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void printStudentData(){
-        System.out.println("-------------------------------\nCurrent Student List\n-------------------------------");
-        System.out.println(getStudentDataFromCSV());
-    }
-    public static String getStudentDataFromCSV(){
-        String path = "student_data.csv";
-        String data = "";
-        String allRows="";
-        try {
-            FileInputStream studentDataFIS= new FileInputStream(path);
-            int size = studentDataFIS.available();
-            byte[] b = new byte[size];
-            studentDataFIS.read(b);
-            data = new String(b);
-
-            String valueSeparator= ",";
-            String recordSeparator= "\n";
-
-            List<String> rows = Arrays.asList(data.split(recordSeparator));
-
-            for(String row : rows){
-                List<String> values= new ArrayList<>();
-
-                values.addAll(Arrays.asList(row.split(valueSeparator)));
-                for(String value : values){
-                    allRows += value + "\t";
-                }
-                allRows = allRows.substring(0,allRows.length()-1);
-                allRows +="\n";
-
+            String input = in.next();
+            switch (input) {
+                case "a":
+                    print("Enrollment page\n" +
+                            "====================================================================================================\n");
+                    print(getCourseDataFromCSV() + "\n");
+                    enroll(studentID);
+                    break;
+                case "d":
+                    unenroll(studentID);
+                    break;
+                case "r":
+                    replace(studentID);
+                    break;
+                case "b":
+                    cont = false;
+                    break;
+                default:
+                    print("Wrong choice, please choose from the list");
             }
-
-            studentDataFIS.close();
-
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
-        return allRows;
+
+
     }
 
-    public static String convertCourseDataToRows(){
-        String data = "id,Course Name,Instructor,Course duration,Course time,Location\n";
-        try {
-            File inputFile = new File("course_data.txt");
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(inputFile);
-            doc.getDocumentElement().normalize();
-            NodeList nList = doc.getElementsByTagName("row");
-
-            for (int temp = 0; temp < nList.getLength(); temp++) {
-                Node nNode = nList.item(temp);
-
-                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                    Element eElement = (Element) nNode;
-                    data += eElement.getElementsByTagName("id")
-                            .item(0)
-                            .getTextContent()
-                            + ","
-                            + eElement
-                            .getElementsByTagName("CourseName")
-                            .item(0)
-                            .getTextContent()
-                            + ","
-                            + eElement
-                            .getElementsByTagName("Instructor")
-                            .item(0)
-                            .getTextContent()
-                            + ","
-                            + eElement
-                            .getElementsByTagName("Courseduration")
-                            .item(0)
-                            .getTextContent()
-                            + ","
-                            + eElement
-                            .getElementsByTagName("Coursetime")
-                            .item(0)
-                            .getTextContent()
-                            + ","
-                            + eElement
-                            .getElementsByTagName("Location")
-                            .item(0)
-                            .getTextContent() + "\n";
+    private static void enroll(int studentID){
 
 
-//                    System.out.println("id: "
-//                            + eElement.getElementsByTagName("id")
-//                            .item(0)
-//                            .getTextContent());
-//                    System.out.println("Course Name : "
-//                            + eElement
-//                            .getElementsByTagName("CourseName")
-//                            .item(0)
-//                            .getTextContent());
-//                    System.out.println("Instructor : "
-//                            + eElement
-//                            .getElementsByTagName("Instructor")
-//                            .item(0)
-//                            .getTextContent());
-//                    System.out.println("Course duration : "
-//                            + eElement
-//                            .getElementsByTagName("Courseduration")
-//                            .item(0)
-//                            .getTextContent());
-//                    System.out.println("Course time : "
-//                            + eElement
-//                            .getElementsByTagName("Coursetime")
-//                            .item(0)
-//                            .getTextContent());
-//                    System.out.println("Location : "
-//                            + eElement
-//                            .getElementsByTagName("Location")
-//                            .item(0)
-//                            .getTextContent());
+        while (true) {
+            String jsonString = readFromText("student_course_details.json");
+            JSONObject obj = new JSONObject(jsonString);
+            JSONArray arr = new JSONArray();
+
+            if (obj.has(String.valueOf(studentID))) {
+                arr= obj.getJSONArray(String.valueOf(studentID));
+                if (arr.length() == 6) {
+
+                    print("The student has reached the maximum number of course enrollment!\n");
+                    return;
                 }
 
+
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            print("Enter the course id that you want to enroll the student to\n" +
+                    "Enter b to go back to the home page: ");
+            String input = in.next();
+
+            if (input.equals("b")) {
+                return;
+            }
+
+            try {
+
+                int courseID = Integer.valueOf(input);
+                String[] courseData = getCourseData(courseID);
+                if (courseData[0] == null) {
+                    System.out.println("Failed to enroll: The course with id = " + courseID + " is not exist");
+                    return;
+                }
+                int cID=0;
+                for(int i=0;i<arr.length();i++){
+                    cID = arr.getInt(i);
+                    if(cID == courseID)
+                        break;
+                }
+                if(cID != courseID)
+                obj.append(String.valueOf(studentID), courseID);
+                else{
+                    print("The student has enrolled in this course previously.\n");
+                    return;
+                }
+
+                String courseName = courseData[1];
+                saveToFile("student_course_details.json",obj.toString());
+                print("The student is Enrolled Successfully in the " + courseName + " course\n");
+            } catch (Exception ex) {
+                print("Failed to enroll: please write a valid course id\n");
+            }
         }
-        data = data.substring(0,data.length()-1);
-        return data;
+
     }
 
+    private static void unenroll(int studentID){
+        String jsonString = readFromText("student_course_details.json");
+        JSONObject obj = new JSONObject(jsonString);
+        JSONArray arr = new JSONArray();
 
+        if (obj.has(String.valueOf(studentID))) {
+            arr= obj.getJSONArray(String.valueOf(studentID));
+            if (arr.length() == 1) {
+
+                print("Faild to unenroll: The student as only one or no courses to unenroll from\n");
+            }
+            else{
+                print("Please enter course id: ");
+                String input = in.next();
+                try{
+                    int courseID = Integer.valueOf(input);
+                    boolean isCourseExist= false;
+                    for(int i=0;i<arr.length();i++){
+                        if(courseID == arr.getInt(i)){
+                            isCourseExist= true;
+                            break;
+                        }
+                    }
+                    if(isCourseExist == true){
+                        obj.remove(String.valueOf(studentID));
+                        for(int i=0;i<arr.length();i++){
+                            if(arr.getInt(i) != courseID)
+                                obj.append(String.valueOf(studentID),arr.getInt(i));
+                        }
+                        print("Unenrolled successfully from the Algorithms course\n");
+                        saveToFile("student_course_details.json",obj.toString());
+                    }
+                    else{
+                        print("The student does not enroll previously in this course!\n");
+                        return;
+                    }
+
+
+                }
+                catch (Exception ex){
+
+                }
+            }
+
+
+        }
+        else{
+            print("Faild to unenroll: The student as only one or no courses to unenroll from\n");
+        }
+    }
+
+    private static void replace(int studentID){
+        String jsonString = readFromText("student_course_details.json");
+        JSONObject obj = new JSONObject(jsonString);
+        JSONArray arr = new JSONArray();
+
+        if (obj.has(String.valueOf(studentID))) {
+            arr= obj.getJSONArray(String.valueOf(studentID));
+            if (arr.length() == 0) {
+
+                print("Faild to replace: The student doesn't enroll to any courses yet!\n");
+            }
+            else{
+                print("Please enter course id to be replaced: ");
+                String input1 = in.next();
+                print("Available courses\n");
+                print(getCourseDataFromCSV() + "\n");
+                print("Please enter the required course id to replace: ");
+                String input2 = in.next();
+                try{
+                    int courseID = Integer.valueOf(input1);
+                    int courseID2 = Integer.valueOf(input2);
+                    boolean isCourseExist= false;
+                    boolean isCourse2Exist= false;
+                    for(int i=0;i<arr.length();i++){
+                        if(courseID == arr.getInt(i)){
+                            isCourseExist= true;
+                            break;
+                        }
+                    }
+
+                    for(int i=0;i<arr.length();i++){
+                        if(courseID2 == arr.getInt(i)){
+                            isCourse2Exist= true;
+                            break;
+                        }
+                    }
+
+                    if(isCourseExist == true && isCourse2Exist==true){
+                        print("The student already enrolled in these courses");
+                        return;
+                    }
+                    else if(isCourseExist == false){
+                        String []course = getCourseData(courseID);
+                        print("the student doesn't enroll in " + course[1] + " course");
+                        return;
+                    }
+                    else{
+                        String []course1 = getCourseData(courseID);
+                        String []course2 = getCourseData(courseID2);
+                        obj.remove(String.valueOf(studentID));
+                        for(int i=0;i<arr.length();i++){
+                            if(arr.getInt(i) != courseID)
+                                obj.append(String.valueOf(studentID),arr.getInt(i));
+                        }
+
+                        obj.append(String.valueOf(studentID),courseID2);
+
+                        print("Courses replaced successfully from the " + course1[1] +" course to " + course2[1] + " course\n");
+
+                        //print(obj.toString());
+                        saveToFile("student_course_details.json",obj.toString());
+                    }
+
+
+
+                }
+                catch (Exception ex){
+                    print("Please enter numbers only");
+                }
+            }
+
+
+        }
+        else{
+            print("Faild to unenroll: The student as only one or no courses to unenroll from\n");
+        }
+    }
 
 }
